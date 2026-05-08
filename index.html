@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>旗亭回憶錄 | 2014-2026 家族大整合</title>
+    <title>誰是旗亭王 | 家族回鄉追逐戰 (多王版)</title>
     <style>
         :root {
             --primary-red: #a51c30;
             --gold: #d4af37;
             --bg-gray: #f4f4f4;
+            --progress-bg: #e0e0e0;
         }
 
         body {
@@ -35,56 +36,10 @@
             text-align: center;
             background: linear-gradient(135deg, #8b0000 0%, #a51c30 100%);
             color: white;
-            padding: 15px;
+            padding: 20px;
             border-radius: 15px;
             border: 3px solid var(--gold);
-        }
-
-        /* 翻頁控制器 */
-        .page-controls {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: white;
-            padding: 15px;
-            border-radius: 15px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            margin-bottom: 10px;
-        }
-
-        .nav-btn {
-            background: var(--primary-red);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 50px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        .nav-btn:disabled { background: #ccc; cursor: not-allowed; }
-
-        #current-year-display { font-size: 2em; font-weight: bold; color: var(--primary-red); }
-
-        /* 照片顯示區 */
-        .photo-frame {
-            width: 100%;
-            height: 300px;
-            background: #eee;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            overflow: hidden;
-            border: 5px solid white;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .photo-frame img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
         }
 
         .main-board {
@@ -92,113 +47,132 @@
             padding: 15px;
             border-radius: 15px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
         }
 
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 10px; border-bottom: 1px solid #eee; text-align: left; }
+        table { width: 100%; border-collapse: collapse; min-width: 850px; }
+
+        th { background: #fff; padding: 10px 5px; border-bottom: 2px solid #ddd; font-size: 12px; }
+
+        .name-col {
+            position: sticky; left: 0; background: #fff8f8; font-weight: bold;
+            z-index: 10; padding: 10px; border-right: 2px solid #eee; min-width: 100px;
+        }
 
         .check-btn {
-            width: 45px; height: 45px; border-radius: 50%; border: 2px solid #ddd;
-            background: #fff; cursor: pointer; font-size: 20px;
+            width: 35px; height: 35px; border-radius: 6px; border: 1px solid #ddd;
+            background: #fff; cursor: pointer; font-size: 16px; touch-action: manipulation;
         }
 
         .check-btn.active { background: var(--primary-red); border-color: var(--primary-red); }
-        .check-btn.active::after { content: "🧧"; }
+        .check-btn.active::after { content: "🧧"; font-size: 12px; }
 
-        /* 排行榜與側邊欄 */
+        .progress-container {
+            width: 80px; background-color: var(--progress-bg); border-radius: 10px;
+            height: 12px; display: inline-block; overflow: hidden;
+        }
+
+        .progress-bar { height: 100%; width: 0%; background: linear-gradient(90deg, #ffb347, #ff4b2b); transition: width 0.3s; }
+
         .sidebar { display: flex; flex-direction: column; gap: 15px; }
-        .rank-card { background: white; padding: 15px; border-radius: 15px; border-top: 6px solid var(--gold); box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+
+        .rank-card {
+            background: white; padding: 15px; border-radius: 15px;
+            border-top: 6px solid var(--gold); box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
         .rank-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; font-size: 14px; }
 
-        .btn-group { display: flex; flex-direction: column; gap: 10px; }
-        .crown-btn { background: var(--gold); color: #a51c30; padding: 15px; border-radius: 50px; font-weight: bold; cursor: pointer; border: none; }
+        .btn-group { position: sticky; bottom: 10px; display: flex; flex-direction: column; gap: 10px; z-index: 100; }
 
-        /* 彈窗樣式 */
+        .crown-btn {
+            background: linear-gradient(to bottom, #f1c40f, #d4af37); color: #a51c30;
+            padding: 18px; border-radius: 50px; border: 2px solid #fff;
+            font-weight: bold; font-size: 1.2em; box-shadow: 0 4px 15px rgba(0,0,0,0.3); cursor: pointer;
+        }
+
+        .save-btn { background: white; color: #666; padding: 10px; border-radius: 10px; border: 1px solid #ccc; cursor: pointer; }
+
+        /* 旗亭王彈窗 */
         #overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.95); z-index: 2000; justify-content: center; align-items: center;
+            padding: 20px; box-sizing: border-box;
         }
-        #award-card { background: #fff; padding: 30px; border-radius: 20px; border: 8px double var(--gold); text-align: center; }
-        .winner-tag { background: #fff8f8; padding: 5px 15px; border-radius: 10px; border: 2px solid var(--gold); font-size: 2em; color: var(--primary-red); font-weight: bold; }
+
+        #award-card {
+            background: #fff; padding: 40px 20px; border-radius: 20px;
+            border: 8px double var(--gold); text-align: center; width: 100%; max-width: 500px;
+            position: relative; animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes popIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        .winner-list {
+            display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;
+            font-size: 2.5em; color: var(--primary-red); margin: 20px 0; font-weight: 900;
+            max-height: 300px; overflow-y: auto;
+        }
+
+        .winner-name-tag {
+            background: #fff8f8; padding: 5px 15px; border-radius: 10px; border: 2px solid var(--gold);
+        }
     </style>
 </head>
 <body>
 
-<div id="overlay" onclick="this.style.display='none'">
-    <div id="award-card">
-        <h2>🚩 豎旗亭榮耀榜 🚩</h2>
-        <div id="announcement" style="display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin: 20px 0;"></div>
-        <button style="padding: 10px 20px; cursor: pointer;">關閉</button>
+<div id="overlay" onclick="closeAward()">
+    <div id="award-card" onclick="event.stopPropagation()">
+        <p style="letter-spacing: 5px; color: #888; font-weight: bold;">🚩 豎旗亭榮耀榜 🚩</p>
+        <h1 style="color: var(--primary-red); margin: 10px 0; border-bottom: 2px solid var(--gold); padding-bottom: 10px;">旗 亭 王 認 證</h1>
+        <div class="winner-list" id="announcement">
+            <!-- 多位勝出者會顯示在這裡 -->
+        </div>
+        <p style="font-size: 1.1em; color: #333;">恭喜以上親戚榮登 2014-2026 整合之巔！</p>
+        <button onclick="closeAward()" style="margin-top:20px; padding: 12px 40px; background: var(--primary-red); color: white; border: none; border-radius: 50px; font-weight: bold; cursor: pointer;">返回戰局</button>
     </div>
 </div>
 
 <div class="container">
     <header>
         <h1>🚩 誰是旗亭王 🚩</h1>
-        <p>2014 - 2026 家族過年回憶整合</p>
+        <p style="margin:0; font-size: 0.9em; opacity: 0.9; letter-spacing: 2px;">2014 - 2026 豎旗亭家族過年整合戰</p>
     </header>
 
-    <div class="content-area">
-        <div class="page-controls">
-            <button class="nav-btn" onclick="changeYear(-1)" id="prevBtn">← 上一年</button>
-            <div id="current-year-display">2014</div>
-            <button class="nav-btn" onclick="changeYear(1)" id="nextBtn">下一年 →</button>
-        </div>
-
-        <div class="photo-frame">
-            <img id="year-photo" src="https://via.placeholder.com/800x400?text=家族合照加在這裡" alt="年份照片">
-        </div>
-
-        <div class="main-board">
-            <table id="yearTable">
-                <thead>
-                    <tr>
-                        <th>親戚姓名</th>
-                        <th>出席狀態</th>
-                    </tr>
-                </thead>
-                <tbody id="tableBody"></tbody>
-            </table>
-        </div>
+    <div class="main-board">
+        <table>
+            <thead>
+                <tr>
+                    <th class="name-col">親戚姓名</th>
+                    <script>
+                        for(let y=2014; y<=2026; y++) document.write(`<th>${y}</th>`);
+                    </script>
+                    <th>整合度</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+        </table>
     </div>
 
     <div class="sidebar">
         <div class="rank-card">
-            <h3 style="text-align: center; color: var(--primary-red);">🏆 總出席率排行</h3>
+            <h3 style="text-align: center; margin-top:0; color: var(--primary-red);">🏆 目前領先群</h3>
             <div id="rankList"></div>
         </div>
+
         <div class="btn-group">
             <button class="crown-btn" onclick="revealKing()">👑 正式加冕：誰是旗亭王？</button>
-            <button style="padding:10px; cursor:pointer;" onclick="saveData()">💾 儲存數據</button>
+            <button class="save-btn" onclick="saveData()">💾 儲存數據</button>
         </div>
     </div>
 </div>
 
 <script>
     const YEARS = Array.from({length: 13}, (_, i) => 2014 + i);
-    let currentYearIndex = 0;
-
-    // 照片設定：請在這裡更換你的照片連結
-    const YEAR_IMAGES = {
-        2014: "LINE_ALBUM_2014-2026家族照片_260509_1",
-        2015: "LINE_ALBUM_2014-2026家族照片_260509_2",
-        2016: "LINE_ALBUM_2014-2026家族照片_260509_3",
-        2017: "",
-        2018: "LINE_ALBUM_2014-2026家族照片_260509_4",
-        2019: "LINE_ALBUM_2014-2026家族照片_260509_6",
-        2020: "LINE_ALBUM_2014-2026家族照片_260509_7",
-        2021: "LINE_ALBUM_2014-2026家族照片_260509_8",
-        2022: "LINE_ALBUM_2014-2026家族照片_260509_9",
-        2023: "LINE_ALBUM_2014-2026家族照片_260509_123",
-        2024: "LINE_ALBUM_2014-2026家族照片_260509_10",
-        2025: "LINE_ALBUM_2014-2026家族照片_260509_11",
-        2026: "LINE_ALBUM_2014-2026家族照片_260509_12",
-        // ...以此類推到 2026
-    };
-
     const NAMES = [
         "朱景南", "朱曾錦月", "朱朝卿", "吳美漣", "朱泰霖", "王美惠", "朱芯霏", "朱見章",
-        "陳靜婷", "朱奕翰", "朱紹維", "朱秋燕", "許晏彬", "范嘉倪", "許立穎", "許育綺","麻糬",
+        "陳靜婷", "朱奕翰", "朱紹維", "朱秋燕", "許晏彬", "范嘉倪", "許立穎", "許育綺",
         "朱秋蘭", "廖宏榮", "廖沛倫", "楊梓萌", "廖予深", "廖洵顏", "許舒涵", "biubiu","朱芸萱",
         "朱春男", "朱泪蒞", "朱玉枝", "黃振暉", "黃思華", "朱修世", "周君萍", "布布",
         "朱壹義", "黃秋娥", "朱慶瑞", "劉金里", "朱婕寧", "朱婕涵", "啤酒", "衛生紙",
@@ -206,86 +180,93 @@
         "三姊仔","三姐夫","東敏仔","東敏老婆"
     ];
 
-    let gameData = JSON.parse(localStorage.getItem('chilingKing_Book_v1')) || {};
+    let gameData = JSON.parse(localStorage.getItem('chilingKing_Multi_v1')) || {};
+    const tableBody = document.getElementById('tableBody');
 
-    function renderYearPage() {
-        const year = YEARS[currentYearIndex];
-        document.getElementById('current-year-display').innerText = year;
-        document.getElementById('year-photo').src = YEAR_IMAGES[year] || "https://via.placeholder.com/800x400?text=尚未上傳合照";
-        
-        const tbody = document.getElementById('tableBody');
-        tbody.innerHTML = '';
+    // 建立表格
+    NAMES.forEach(name => {
+        const tr = document.createElement('tr');
+        const tdName = document.createElement('td');
+        tdName.className = 'name-col'; tdName.innerText = name;
+        tr.appendChild(tdName);
 
-        NAMES.forEach(name => {
-            const tr = document.createElement('tr');
+        YEARS.forEach(year => {
+            const td = document.createElement('td');
+            const btn = document.createElement('button');
+            btn.className = 'check-btn';
             const key = `${name}-${year}`;
-            
-            tr.innerHTML = `
-                <td><strong>${name}</strong></td>
-                <td>
-                    <button class="check-btn ${gameData[key] ? 'active' : ''}" 
-                            onclick="toggleAttend('${name}', ${year}, this)">
-                    </button>
-                </td>
-            `;
-            tbody.appendChild(tr);
+            if (gameData[key]) btn.classList.add('active');
+            btn.onclick = function() {
+                this.classList.toggle('active');
+                gameData[key] = this.classList.contains('active');
+                updateRow(name);
+                updateRanking();
+            };
+            td.appendChild(btn); tr.appendChild(td);
         });
 
-        // 按鈕狀態控制
-        document.getElementById('prevBtn').disabled = currentYearIndex === 0;
-        document.getElementById('nextBtn').disabled = currentYearIndex === YEARS.length - 1;
-        updateRanking();
+        const tdStat = document.createElement('td');
+        tdStat.style.textAlign = 'center';
+        tdStat.innerHTML = `<div class="progress-container"><div id="bar-${name}" class="progress-bar"></div></div><div id="txt-${name}" style="font-size:10px; color:#a51c30; font-weight:bold;">0%</div>`;
+        tr.appendChild(tdStat); tableBody.appendChild(tr);
+        updateRow(name);
+    });
+
+    function updateRow(name) {
+        let count = 0;
+        YEARS.forEach(y => { if (gameData[`${name}-${y}`]) count++; });
+        const p = Math.round((count / YEARS.length) * 100);
+        document.getElementById(`bar-${name}`).style.width = p + '%';
+        document.getElementById(`txt-${name}`).innerText = p + '%';
     }
 
-    function toggleAttend(name, year, btn) {
-        const key = `${name}-${year}`;
-        gameData[key] = !gameData[key];
-        btn.classList.toggle('active');
-        updateRanking();
-    }
-
-    function changeYear(step) {
-        currentYearIndex += step;
-        renderYearPage();
-    }
-
-    function updateRanking() {
-        const stats = NAMES.map(n => {
+    function getStats() {
+        return NAMES.map(n => {
             let c = 0; YEARS.forEach(y => { if (gameData[`${n}-${y}`]) c++; });
             return { name: n, p: Math.round((c / YEARS.length) * 100) };
         }).sort((a, b) => b.p - a.p);
+    }
 
+    function updateRanking() {
+        const ranking = getStats();
         const list = document.getElementById('rankList');
         list.innerHTML = '';
-        stats.slice(0, 10).forEach((item, index) => {
+        ranking.slice(0, 10).forEach((item, index) => {
             list.innerHTML += `<div class="rank-item"><span>${index+1}. ${item.name}</span><strong>${item.p}%</strong></div>`;
         });
     }
 
     function revealKing() {
-        const stats = NAMES.map(n => {
-            let c = 0; YEARS.forEach(y => { if (gameData[`${n}-${y}`]) c++; });
-            return { name: n, p: Math.round((c / YEARS.length) * 100) };
-        }).sort((a, b) => b.p - a.p);
+        const stats = getStats();
+        const maxPercent = stats[0].p;
 
-        const maxP = stats[0].p;
-        if (maxP === 0) return alert("請先開始紀錄！");
+        if (maxPercent === 0) return alert("請先開始紀錄出席狀況！");
 
-        const kings = stats.filter(s => s.p === maxP);
+        // 找出所有達到最高出席率的人
+        const kings = stats.filter(person => person.p === maxPercent);
+        
         const container = document.getElementById('announcement');
         container.innerHTML = '';
+        
         kings.forEach(k => {
-            container.innerHTML += `<div class="winner-tag">${k.name}</div>`;
+            const span = document.createElement('span');
+            span.className = 'winner-name-tag';
+            span.innerText = k.name;
+            container.appendChild(span);
         });
+
+        // 根據人數動態縮小字級防止爆版
+        if (kings.length > 3) container.style.fontSize = '1.8em';
+        else if (kings.length > 1) container.style.fontSize = '2.2em';
+        else container.style.fontSize = '2.8em';
+
         document.getElementById('overlay').style.display = 'flex';
     }
 
-    function saveData() {
-        localStorage.setItem('chilingKing_Book_v1', JSON.stringify(gameData));
-        alert('回憶數據已儲存！');
-    }
+    function closeAward() { document.getElementById('overlay').style.display = 'none'; }
+    function saveData() { localStorage.setItem('chilingKing_Multi_v1', JSON.stringify(gameData)); alert('數據已安全儲存於瀏覽器中！'); }
 
-    renderYearPage();
+    updateRanking();
 </script>
 </body>
 </html>
